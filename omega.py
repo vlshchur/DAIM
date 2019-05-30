@@ -91,19 +91,29 @@ class Omega:
         s = interval[2]
         p = -s*(t-t0)/2
         k0 = omega0/(1-omega0)
-        return( 1-1/(1+k0*exp(p)) )
+        af = 1.0
+        if 1.0-omega0 > 0.0:
+            k0 = omega0/(1.0-omega0)
+            af = 1.0-1.0/(1.0+k0*exp(p))
+        return( af )
     
     def freq_to_time(self, omega, interval):
+        if omega == 0.0 or omega == 1.0:
+            print("Cannot caclulate time for AF 0.0 or 1.0.")
+            sys.exit(1)
         t0 = interval[0]
         omega0 = interval[1]
         s = interval[2]
-        k0 = omega0/(1-omega0)
-        return( t0-2/s*log( 1/k0*omega/(1-omega) ) )
+        k0_inv = (1-omega0)/omega0
+        return( t0-2/s*log( k0_inv*omega/(1-omega) ) )
     
     def fit_select(self, pars):
         dT = pars[1][0]-pars[0][0]
         omega0 = pars[0][1]
         omega1 = pars[1][1]
+        if omega0 == 0.0 or omega0 == 1.0 or omega1 == 0.0 or omega1 == 1.0:
+            print("Cannot caclulate selection coefficient for AF 0.0 or 1.0.")
+            sys.exit(1)
         select = -2*(log(omega1/(1 - omega1)) - log(omega0/(1 - omega0)))/dT
         return(select)
     
