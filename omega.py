@@ -103,9 +103,12 @@ class Omega:
             sys.exit(1)
         t0 = interval[0]
         omega0 = interval[1]
+        if omega0 == 0.0 or omega0 == 1.0:
+            print("Cannot caclulate time for AF 0.0 or 1.0.")
+            sys.exit(1)
         s = interval[2]
-        k0_inv = (1-omega0)/omega0
-        return( t0-2/s*log( k0_inv*omega/(1-omega) ) )
+        k0 = omega0/(1-omega0)
+        return( t0-2/s*log( 1/k0*omega/(1-omega) ) )
     
     def fit_select(self, pars):
         dT = pars[1][0]-pars[0][0]
