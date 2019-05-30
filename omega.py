@@ -90,12 +90,13 @@ class Omega:
         omega0 = interval[1]
         s = interval[2]
         p = -s*(t-t0)/2
-        k0 = omega0/(1-omega0)
         af = None
         if omega0 > 0.0 and omega0 < 1.0 :
             k0 = omega0/(1.0-omega0)
             af = 1.0-1.0/(1.0+k0*exp(p))
         else:
+            raise ValueError
+        if af == 0.0 or af == 1.0:
             raise ValueError
         return( af )
     
