@@ -27,7 +27,7 @@ os.environ["OMP_NUM_THREADS"] = "1"
 import argparse
 import numpy as np
 import math
-from math import (exp,log)
+from math import (exp,log,floor)
 from scipy import (linalg as la,integrate)
 import time
 from numpy import (dot,identity)
@@ -132,3 +132,96 @@ class Omega:
         for el in self.intervals[:-1]:
             print("\t\t".join([str(v) for v in el]))
         print("\t\t".join([str(v) for v in self.intervals[-1][:-1]]))
+        
+        
+class Omega1:
+    def __init__(self, s, omega1, T, N):
+        omegaTH = 0.01
+        self.th = T-log(omegaTH/omega1)/s
+        self.s = s
+        self.T = T
+        self.N = N
+        self.omega1 = omega1
+        self.omega2 = omega1*exp( s*(T-self.th) )
+        self.omega0 = self.time_to_freq(0, [self.th, self.omega2, self.s])
+        self.dT = self.T
+        self.proportion = omega1
+        
+    def limits(self):
+        return([0, self.T])
+    
+    def time_to_freq(self, t, interval):
+        t0 = interval[0]
+        omega0 = interval[1]
+        s = interval[2]
+        p = -s*(t-t0)/2
+        af = None
+        if omega0 > 0.0 and omega0 < 1.0 :
+            k0 = omega0/(1.0-omega0)
+            af = 1.0-1.0/(1.0+k0*exp(p))
+        else:
+            raise ValueError
+        if af == 0.0 or af == 1.0:
+            raise ValueError
+        return( af )
+        
+    def freq_to_time(self, omega, interval):
+        t0 = interval[0]
+        omega0 = interval[1]
+        if omega == 0.0 or omega == 1.0 or omega0 == 0.0 or omega0 == 1.0:
+            raise ValueError
+        s = interval[2]
+        k0 = omega0/(1-omega0)
+        return( t0-2/s*log( 1/k0*omega/(1-omega) ) )
+    
+    def omega(self, t):
+        #if t < self.Tp or t > self.Ta:
+        #    print("Trajectory is not defined for time", t, "(should be between", self.Tp, "and", self.Ta, ")")
+        #    sys.exit(1)
+        if t > self.th:
+            return( self.omega1*exp(self.s*(self.T-t)) )
+        else:
+            return(  self.time_to_freq(t, [0, self.omega0, self.s])  )
+        
+    def Print(self):
+        return
+
+
+class Omega_matrix():
+    def __init__(self, file_name, Ta = None):
+        skip = 0
+        counter = 0
+        self.mean_traj = []
+        with open(file_name) as data:
+            for row in data:
+                counter += 1
+                if counter < skip+1:
+                    continue
+                row = row.split("\t")
+                self.mean_traj.append(float(row[2]))
+        self.Tp = 0
+        self.Ta = len(self.mean_traj)-1
+        if Ta is not None:
+            self.Ta = min(Ta, self.Ta)
+        self.dT = self.Ta - self.Tp
+        self.proportion = self.mean_traj[0]
+    
+    def limits(self):
+        return([self.Tp, self.Ta])
+    
+    def linear_func(self, x0, t):
+        y0 = self.mean_traj[x0]
+        x1 = x0+1
+        y1 = self.mean_traj[x1]
+        k = (y1-y0)/(x1-x0)
+        return(k*(t-x0)+y0)
+    
+    def omega(self, t):
+        if t < 0:
+            return( self.linear_func(0, t) )
+        if t > self.Ta-1:
+            return( self.linear_func(self.Ta-1, t) )
+        return( self.linear_func(floor(t), t) )
+        
+    def Print(self):
+        return

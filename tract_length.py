@@ -26,21 +26,54 @@ os.environ["OMP_NUM_THREADS"] = "1"
 
 import argparse
 import matplotlib.pyplot as plt
-from omega import Omega
+from omega import Omega,Omega1,Omega_matrix
 from ode import ExpectedTractLength
 
 
 
 Ne = 10000#Effective population size
-trajectory_parameters = [[0, None, 0.01], [500, 0.1, 0]]#Allele trajectory
+times = [1500,1750,2000,2250]
+lens = []
+trajectory_parameters = [[0, None, 0.01], [1500, 0.0006, 0]]#Allele trajectory
 
+fn_input = "data/denisova_means.txt"
 
+for maxT in times:
+    try:
+#        omega = Omega1(0.01,0.0006,maxT,10000)
+#        omega = Omega(trajectory_parameters)
+        omega = Omega_matrix(fn_input, maxT)
+    except ValueError:
+        print("Cannot initialise AF trajectory, allele goes to fixation.")
+        print("time\tlength")
+        for t, l in zip(times, len):
+            print(t, "\t", l)
+        sys.exit(1)
+    omega.Print()
+    if False:
+    #    plt.plot(range(omega.Tp,omega.Ta), [omega.omega(t) for t in range(omega.Tp,omega.Ta)])
+        plt.plot(range(0,maxT), [omega.omega(t) for t in range(0,maxT)])
+        plt.show()
 
-omega = Omega(trajectory_parameters)
-omega.Print()
-if False:
-    plt.plot(range(omega.Tp,omega.Ta), [omega.omega(t) for t in range(omega.Tp,omega.Ta)])
-    plt.show()
+    #print("Calculating...")
+
+    tr_len = ExpectedTractLength(omega, Ne)
+    lens.append(tr_len)
+    #print("tract length is ", tr_len)
+print("time\tlength")
+for t, l in zip(times, lens):
+    print(t, "\t", l)
+
+sys.exit(0)
+
+try:
+    omega = Omega(trajectory_parameters)
+except ValueError:
+    print("Cannot initialise AF trajectory, allele goes to fixation.")
+    sys.exit(1)
+    
+print("Calculating...")
 
 tr_len = ExpectedTractLength(omega, Ne)
+
 print("tract length is ", tr_len)
