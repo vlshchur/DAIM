@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
 
-#    Copyright (c) 2018 Vladimir Shchur (vlshchur@gmail.com)
+#    Copyright (c) 2019 Vladimir Shchur (vlshchur@gmail.com)
 #
-#    This file is part of AITL.
+#    This file is part of DAIM.
 #
-#    AITL is free software: you can redistribute it and/or modify
+#    DAIM is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 3 of the License, or
 #    (at your option) any later version.
 #
-#    AITL is distributed in the hope that it will be useful,
+#    DAIM is distributed in the hope that it will be useful,
 #    but WITHOUT ANY WARRANTY; without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #    GNU General Public License for more details.
 #
 #    You should have received a copy of the GNU General Public License
-#    along with MiSTI.  If not, see <https://www.gnu.org/licenses/>.
+#    along with DAIM.  If not, see <https://www.gnu.org/licenses/>.
 
 import sys
 import os
@@ -33,7 +33,9 @@ import time
 from numpy import (dot,identity)
 import matplotlib.pyplot as plt
 
-class Omega:
+from scipy.interpolate import interp1d
+
+class Omega_logit:
     def __init__(self, pars):
         if not isinstance(pars, list) or len(pars) < 2:
             print("Trajectory should have at least two points.")
@@ -187,41 +189,62 @@ class Omega1:
         return
 
 
-class Omega_matrix():
-    def __init__(self, file_name, Ta = None):
+class Omega_precomp():
+    def __init__(self, mean_traj):
         skip = 0
         counter = 0
-        self.mean_traj = []
-        with open(file_name) as data:
-            for row in data:
-                counter += 1
-                if counter < skip+1:
-                    continue
-                row = row.split("\t")
-                self.mean_traj.append(float(row[2]))
+        self.mean_traj = mean_traj
         self.Tp = 0
         self.Ta = len(self.mean_traj)-1
-        if Ta is not None:
-            self.Ta = min(Ta, self.Ta)
         self.dT = self.Ta - self.Tp
         self.proportion = self.mean_traj[0]
+#        self.traj = interp1d([i for i in range(self.Ta+1)], self.mean_traj, kind='cubic', fill_value = 'extrapolate')
     
     def limits(self):
         return([self.Tp, self.Ta])
     
     def linear_func(self, x0, t):
         y0 = self.mean_traj[x0]
-        x1 = x0+1
-        y1 = self.mean_traj[x1]
-        k = (y1-y0)/(x1-x0)
+        #x1 = x0+1
+        y1 = self.mean_traj[x0+1]
+        #k = (y1-y0)/(x1-x0)
+        k = (y1-y0)
         return(k*(t-x0)+y0)
     
+    def omega1(self, t):
+        prop = 0.006
+        PAF = 0.99
+        dT = 2250
+        s = -2*(log(prop/(1 - prop)) - log(PAF/(1 - PAF)))/dT
+        k0 = PAF/(1-PAF)
+        p = -s*t/2
+        om = 1.0-1.0/(1.0+k0*exp(p))
+        return(om)
+    
+    def omega2(self, t):
+        prop = 0.2
+        PAF = 0.9907202025434643
+        dT = 1585
+        s = -2*(log(prop/(1 - prop)) - log(PAF/(1 - PAF)))/dT
+        k0 = PAF/(1-PAF)
+        p = -s*t/2
+        om = 1.0-1.0/(1.0+k0*exp(p))
+        if t > dT:
+            om = self.omega(t)
+        return(om)
+    
     def omega(self, t):
+        t = len(self.mean_traj)-t
         if t < 0:
             return( self.linear_func(0, t) )
         if t > self.Ta-1:
             return( self.linear_func(self.Ta-1, t) )
         return( self.linear_func(floor(t), t) )
+        
+    def omega3(self, t):
+        t = self.Ta-t
+        v = self.traj(t)
+        return( v )
         
     def Print(self):
         return

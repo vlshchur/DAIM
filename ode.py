@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
 
-#    Copyright (c) 2018 Vladimir Shchur (vlshchur@gmail.com)
+#    Copyright (c) 2019 Vladimir Shchur (vlshchur@gmail.com)
 #
-#    This file is part of AITL.
+#    This file is part of DAIM.
 #
-#    AITL is free software: you can redistribute it and/or modify
+#    DAIM is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 3 of the License, or
 #    (at your option) any later version.
 #
-#    AITL is distributed in the hope that it will be useful,
+#    DAIM is distributed in the hope that it will be useful,
 #    but WITHOUT ANY WARRANTY; without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #    GNU General Public License for more details.
 #
 #    You should have received a copy of the GNU General Public License
-#    along with MiSTI.  If not, see <https://www.gnu.org/licenses/>.
+#    along with DAIM.  If not, see <https://www.gnu.org/licenses/>.
 
 import sys
 import os
@@ -62,9 +62,11 @@ def ODE(y, t, omega, ode_pars):
         ]
     return( dot(M, y) )
 
-def ExpectedTractLength(omega, Ne):
+def ExpectedTractLength(omega, Ne, debug = False):
     prec = precision()
     rRange = prec.range_c*NeutralExpectation( Ne, omega.dT, omega.proportion )
+    if debug:
+        sys.stderr.write("Evaluating transition rates within ", rRange, " Morgans from the selection site.\n")
     '''print("rRange = ", rRange)
     print("Integration interval Tp = ", Tp, "\tTa = ", Ta)
     print("Frequencies omega_p = ", time_to_freq(Tp, s), "\tomega_a = ", time_to_freq(Ta, s))'''
@@ -74,13 +76,19 @@ def ExpectedTractLength(omega, Ne):
     p0 = [1, 0, 0, 0, 0, 0]
     for d in range(prec.discr):
         ode_pars.r1 = dr*d
-        sol = integrate.odeint(lambda y, t: ODE(y, t, omega.omega, ode_pars), p0, omega.limits())
+        sol = integrate.odeint(lambda y, t: ODE(y, t, omega.omega, ode_pars), p0, omega.limits(),mxstep=5000000)
         transition_rates.append( sol[1][2]/(sol[1][0]+sol[1][1]+sol[1][2])/ode_pars.r2 )
     cumul_rate = 0
     pdf = []
     for d in range(prec.discr):
        pdf.append(exp(-cumul_rate*dr)*transition_rates[d])
        cumul_rate += transition_rates[d]
+    if False:
+        x = []
+        for d in range(prec.discr):
+            x.append(d*dr)
+        plt.plot(x, transition_rates)
+        plt.show()
     norm = sum(pdf)
     expected_tr_len = 0
     for d in range(prec.discr):
