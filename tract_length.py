@@ -83,11 +83,27 @@ else:
     sys.exit(1)
 
 
-print("time\tlength")
+print("time\tlength\tsd")
 for v in lens:
-    print(v[0], "\t", v[1])
+    print(v[0], "\t", v[1][0], "\t", v[1][1])
     
 sys.exit(0)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 Ne = 10000#Effective population size

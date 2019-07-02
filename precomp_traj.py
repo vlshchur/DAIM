@@ -37,16 +37,31 @@ parser.add_argument('-at', action='store_true',
                     help='Output all trajectories, if not specified, only expected trajectories will be output')
 parser.add_argument('--reps', '-r', type=int, default=100000,
                     help='number of repetitions')
+parser.add_argument('--max', '-max', type=int,
+                    help='maximal number of non-extinct trajectories to be sampled')
+parser.add_argument("--paf", "-paf", type=float,
+                    help="Desired average observed AF (if achievable within the maximal number of generations provided).")
                     
 
                     
-clargs = parser.parse_args()
-if isinstance(clargs.at, list):
-    clargs.at = clargs.at[0]
-if isinstance(clargs.reps, list):
-    clargs.reps = clargs.reps[0]
+cl = parser.parse_args()
+if isinstance(cl.at, list):
+    cl.at = cl.at[0]
+if isinstance(cl.reps, list):
+    cl.reps = cl.reps[0]
+if isinstance(cl.max, list):
+    cl.max = cl.max[0]
+if isinstance(cl.paf, list):
+    cl.paf = cl.paf[0]
+if cl.paf is not None:
+    if cl.paf <= 0 or cl.paf >= 1:
+        sys.stderr.write("PAF should be strictly between 0 and 1\n.")
+        sys.exit(1)
 
-clargs.selection /= 2.0
+cl.selection /= 2.0
+
+if cl.selection <= 0:
+    sys.stderr.write("Negative selection and neutral cases are not tested, so might not work as epxected.\n")
 
 def SimulateTrajectory(f, s, n, g, output_tr=False):
     na = n * f
@@ -79,30 +94,57 @@ def SimulateTrajectory(f, s, n, g, output_tr=False):
     return result
     
     
-def CalculateMeanTrajectories(trajs, gens):
+def CalculateMeanTrajectories(trajs, gens, paf=None):
     mean_traj = { g: [0.0 for _ in range(g+1)] for g in gens }
     counters = {g: 0 for g in gens}
+    
+    if paf is not None:
+        i = max(gens)+1
+        af1 = 1
+        while paf < af1 and i >= 0:
+            i -= 1
+            af1 = 0
+            count = 0
+            for tr in trajs:
+                if tr[i] > 0.0:
+                    af1 += tr[i]
+                    count += 1
+            af1 /= count
+        i += 1
+        i = min(i, max(gens))
+        if i not in counters.keys():
+            mean_traj[i] = [0.0 for _ in range(i+1)]
+            counters[i] = 0
+            gens.append(i)
+    
     for tr in trajs:
         for g in gens:
             if tr[g] != 0.0:
                 counters[g] += 1
                 for i in range(g+1):
                     mean_traj[g][i] += tr[i]
+            
     sys.stderr.write("Number of sampled trajectories:\n")
     for g in gens:
-        for i in range( len(mean_traj[g]) ):
+        for i in range( g+1 ):
             mean_traj[g][i] /= counters[g]
         sys.stderr.write(str(g) + " generations: " + str(counters[g]) + " trajectories\n")
     return mean_traj
 
 ## results vectors
 results = []
-max_gen = max(clargs.generations)
+max_gen = max(cl.generations)
 
-for sim in range(clargs.reps) :
-    result = SimulateTrajectory(clargs.proportion, clargs.selection, clargs.Ne, max_gen, clargs.at)
-    results.append(result)
-mean_traj = CalculateMeanTrajectories(results, clargs.generations)
+success = 0
+for sim in range(cl.reps) :
+    result = SimulateTrajectory(cl.proportion, cl.selection, cl.Ne, max_gen, cl.at)
+    if result[min(cl.generations)] > 0.0 or cl.at:
+        results.append(result)
+        success += 1
+        if cl.max is not None and cl.max == success:
+            break
+        
+mean_traj = CalculateMeanTrajectories(results, cl.generations, cl.paf)
 
 
 for g, tr in mean_traj.items():

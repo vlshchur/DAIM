@@ -27,7 +27,7 @@ os.environ["OMP_NUM_THREADS"] = "1"
 import argparse
 import numpy as np
 import math
-from math import (exp,log)
+from math import (exp,log,sqrt)
 from scipy import (linalg as la,integrate)
 import time
 from numpy import (dot,identity)
@@ -91,9 +91,14 @@ def ExpectedTractLength(omega, Ne, debug = False):
         plt.show()
     norm = sum(pdf)
     expected_tr_len = 0
+    var_tr_len = 0
     for d in range(prec.discr):
         expected_tr_len += pdf[d]*(d*dr)
-    return( 2*expected_tr_len/norm )
+        var_tr_len += pdf[d]*(d*dr)**2
+    expected_tr_len /= norm
+    var_tr_len /= norm
+    var_tr_len -= expected_tr_len**2
+    return( [2*expected_tr_len, sqrt(2*var_tr_len)] )
 
 def time_to_freq(t, s):
     return(  1 - 1/(1 + exp(-s*t/2))  )
