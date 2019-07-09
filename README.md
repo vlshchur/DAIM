@@ -19,4 +19,5 @@ Input file is tab-seperated. The lines with expected (mean) trajectories should 
 Use `./precomp_traj.py` to simulate the expected trajectories. Notice that you can specify several values for the introgression time (which might be significantly faster than making independent simulations for each of those values). Example:
 ```
 ./precomp_traj.py 0.0006 0.01 10000 1500 1750 2000 2250 > mean_traj.txt
+./tract_length.py precomp mean_traj.txt
 ```
