@@ -92,7 +92,7 @@ print("time\tlength\tsd")
 for v in lens:
     print(v[0], "\t", v[1][0], "\t", v[1][1])
     if cl.pdf:
-        print_err("#HEADER", v[0], sep="\t")
+        print_err("#HEADER", v[0], " ".join(sys.argv), sep="\t")
         for prob, point in zip(v[1][2], v[1][3]):
             print_err(point, prob, sep="\t")
 
