@@ -29,6 +29,8 @@ import matplotlib.pyplot as plt
 from omega import Omega_logit,Omega_precomp
 from ode import ExpectedTractLength
 
+def print_err(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
 
 parser = argparse.ArgumentParser(description='Migration inference from PSMC.')
 
@@ -38,10 +40,13 @@ parser.add_argument('input_file', nargs='*',
                     help='input file with the trajectory for precomputed mode')
 
 parser.add_argument('--point', '-p', nargs=3, type=str, action = 'append',
-                    help='points for logistic function mode')#-mi [npop:1/2] [migStart] [migEnd] [init val] [var:0/1]
+                    help='points for logistic function mode: [time] [AF] [selectio]')#-mi [npop:1/2] [migStart] [migEnd] [init val] [var:0/1]
 
 parser.add_argument('-Ne', type=int, default=10000,
                     help='haploid effective population size')
+
+parser.add_argument('--pdf', action='store_true',
+                    help='Output probability density function')
 
 #parser.add_argument('-at', action='store_true',
 #                    help='Output all trajectories, if not specified, only expected trajectories will be output')                    
@@ -49,7 +54,7 @@ parser.add_argument('-Ne', type=int, default=10000,
                     
 cl = parser.parse_args()
 if isinstance(cl.Ne, list):
-    cl.Ne = cl.Ne[0]    
+    cl.Ne = cl.Ne[0]
 
 trajectory_parameters = None
 omega = None
@@ -86,7 +91,11 @@ else:
 print("time\tlength\tsd")
 for v in lens:
     print(v[0], "\t", v[1][0], "\t", v[1][1])
-    
+    if cl.pdf:
+        print_err("#HEADER", v[0], sep="\t")
+        for prob, point in zip(v[1][2], v[1][3]):
+            print_err(point, prob, sep="\t")
+
 sys.exit(0)
 
 

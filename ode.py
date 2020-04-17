@@ -80,8 +80,10 @@ def ExpectedTractLength(omega, Ne, debug = False):
         transition_rates.append( sol[1][2]/(sol[1][0]+sol[1][1]+sol[1][2])/ode_pars.r2 )
     cumul_rate = 0
     pdf = []
+    points = []
     for d in range(prec.discr):
        pdf.append(exp(-cumul_rate*dr)*transition_rates[d])
+       points.append(d*dr)
        cumul_rate += transition_rates[d]
     if False:
         x = []
@@ -93,12 +95,12 @@ def ExpectedTractLength(omega, Ne, debug = False):
     expected_tr_len = 0
     var_tr_len = 0
     for d in range(prec.discr):
-        expected_tr_len += pdf[d]*(d*dr)
-        var_tr_len += pdf[d]*(d*dr)**2
+        expected_tr_len += pdf[d]*points[d]
+        var_tr_len += pdf[d]*points[d]**2
     expected_tr_len /= norm
     var_tr_len /= norm
     var_tr_len -= expected_tr_len**2
-    return( [2*expected_tr_len, sqrt(2*var_tr_len)] )
+    return( [2*expected_tr_len, sqrt(2*var_tr_len), pdf, points] )
 
 def time_to_freq(t, s):
     return(  1 - 1/(1 + exp(-s*t/2))  )
