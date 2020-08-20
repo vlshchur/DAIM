@@ -1,0 +1,6 @@
+51	1	50	0	hybrid_population.50.txt
+101	1	50	0	hybrid_population.100.txt
+201	1	50	0	hybrid_population.200.txt
+301	1	50	0	hybrid_population.300.txt
+501	1	50	0	hybrid_population.500.txt
+1001	1	50	0	hybrid_population.1000.txt
