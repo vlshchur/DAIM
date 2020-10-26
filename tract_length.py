@@ -28,6 +28,7 @@ import argparse
 import matplotlib.pyplot as plt
 from omega import Omega_logit,Omega_precomp
 from ode import ExpectedTractLength
+from math import sqrt
 
 def print_err(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
@@ -91,6 +92,12 @@ else:
 print("time\tlength\tsd")
 for v in lens:
     print(v[0], "\t", v[1][0], "\t", v[1][1])
+    osm = v[1][0]/2
+#    osd = sqrt((v[1][1])**2/2)
+#    print("Observed AF = ", v[1][4])
+#    print("One sided mean =", osm)
+#    print("one sided sd   =", osd)
+#    print("error = ", (osm-osd)/osm)
     if cl.pdf:
         print_err("#HEADER", v[0], " ".join(sys.argv), sep="\t")
         for prob, point in zip(v[1][2], v[1][3]):

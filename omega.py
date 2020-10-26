@@ -97,15 +97,17 @@ class Omega_logit:
             k0 = omega0/(1.0-omega0)
             af = 1.0-1.0/(1.0+k0*exp(p))
         else:
+            print("Omega_logit.time_to_freq: omega0 = ", omega0, ", time = ", t)
             raise ValueError
-        if af == 0.0 or af == 1.0:
-            raise ValueError
+#        if af == 0.0 or af == 1.0:
+#            raise ValueError
         return( af )
     
     def freq_to_time(self, omega, interval):
         t0 = interval[0]
         omega0 = interval[1]
         if omega == 0.0 or omega == 1.0 or omega0 == 0.0 or omega0 == 1.0:
+            print("Omega_logit.freq_to_time: omega = ", omega, ", omega0 = ", omega0)
             raise ValueError
         s = interval[2]
         k0 = omega0/(1-omega0)
@@ -162,8 +164,10 @@ class Omega1:
             k0 = omega0/(1.0-omega0)
             af = 1.0-1.0/(1.0+k0*exp(p))
         else:
+            print("Omega1.time_to_freq: omega0 = ", omega0)
             raise ValueError
         if af == 0.0 or af == 1.0:
+            print("Omega1.time_to_freq: af = ", af)
             raise ValueError
         return( af )
         
@@ -171,6 +175,7 @@ class Omega1:
         t0 = interval[0]
         omega0 = interval[1]
         if omega == 0.0 or omega == 1.0 or omega0 == 0.0 or omega0 == 1.0:
+            print("Omega1.freq_to_time: omega = ", omega, ", omega0 = ", omega0)
             raise ValueError
         s = interval[2]
         k0 = omega0/(1-omega0)
@@ -228,7 +233,7 @@ class Omega_precomp():
         s = -2*(log(prop/(1 - prop)) - log(PAF/(1 - PAF)))/dT
         k0 = PAF/(1-PAF)
         p = -s*t/2
-        om = 1.0-1.0/(1.0+k0*exp(p))
+        om = 1.0-1.0/(1.0+k0*Tp(p))
         if t > dT:
             om = self.omega(t)
         return(om)

@@ -34,6 +34,9 @@ from numpy import (dot,identity)
 import matplotlib.pyplot as plt
 #from omega import Omega
 
+def print_err(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
+
 class precision:
     def __init__(self):
         self.r2_c = 1.0
@@ -100,7 +103,7 @@ def ExpectedTractLength(omega, Ne, debug = False):
     expected_tr_len /= norm
     var_tr_len /= norm
     var_tr_len -= expected_tr_len**2
-    return( [2*expected_tr_len, sqrt(2*var_tr_len), pdf, points] )
+    return( [2*expected_tr_len, sqrt(2*var_tr_len), pdf, points, omega.omega(0)] )
 
 def time_to_freq(t, s):
     return(  1 - 1/(1 + exp(-s*t/2))  )
