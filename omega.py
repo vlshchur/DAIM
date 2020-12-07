@@ -31,8 +31,6 @@ from math import (exp,log,floor)
 from scipy import (linalg as la,integrate)
 import time
 from numpy import (dot,identity)
-import matplotlib.pyplot as plt
-
 from scipy.interpolate import interp1d
 
 class Omega_logit:
@@ -82,11 +80,11 @@ class Omega_logit:
         self.Tp, self.Ta = self.limits()
         self.dT = self.Ta-self.Tp
         self.proportion = self.intervals[-1][1]
-                
-        
+
+
     def limits(self):
         return([self.intervals[0][0], self.intervals[-1][0]])
-    
+
     def time_to_freq(self, t, interval):
         t0 = interval[0]
         omega0 = interval[1]
@@ -102,7 +100,7 @@ class Omega_logit:
 #        if af == 0.0 or af == 1.0:
 #            raise ValueError
         return( af )
-    
+
     def freq_to_time(self, omega, interval):
         t0 = interval[0]
         omega0 = interval[1]
@@ -112,7 +110,7 @@ class Omega_logit:
         s = interval[2]
         k0 = omega0/(1-omega0)
         return( t0-2/s*log( 1/k0*omega/(1-omega) ) )
-    
+
     def fit_select(self, pars):
         dT = pars[1][0]-pars[0][0]
         omega0 = pars[0][1]
@@ -121,7 +119,7 @@ class Omega_logit:
             raise ValueError
         select = -2*(log(omega1/(1 - omega1)) - log(omega0/(1 - omega0)))/dT
         return(select)
-    
+
     def omega(self, t):
         #if t < self.Tp or t > self.Ta:
         #    print("Trajectory is not defined for time", t, "(should be between", self.Tp, "and", self.Ta, ")")
@@ -130,14 +128,14 @@ class Omega_logit:
         while t > self.intervals[interval+1][0] and t < len(self.intervals)-1:
             interval+=1
         return(  self.time_to_freq(t, self.intervals[interval])  )
-        
+
     def Print(self):
         print("time\t\tAF\t\tselection")
         for el in self.intervals[:-1]:
             print("\t\t".join([str(v) for v in el]))
         print("\t\t".join([str(v) for v in self.intervals[-1][:-1]]))
-        
-        
+
+
 class Omega1:
     def __init__(self, s, omega1, T, N):
         omegaTH = 0.01
@@ -150,10 +148,10 @@ class Omega1:
         self.omega0 = self.time_to_freq(0, [self.th, self.omega2, self.s])
         self.dT = self.T
         self.proportion = omega1
-        
+
     def limits(self):
         return([0, self.T])
-    
+
     def time_to_freq(self, t, interval):
         t0 = interval[0]
         omega0 = interval[1]
@@ -170,7 +168,7 @@ class Omega1:
             print("Omega1.time_to_freq: af = ", af)
             raise ValueError
         return( af )
-        
+
     def freq_to_time(self, omega, interval):
         t0 = interval[0]
         omega0 = interval[1]
@@ -180,7 +178,7 @@ class Omega1:
         s = interval[2]
         k0 = omega0/(1-omega0)
         return( t0-2/s*log( 1/k0*omega/(1-omega) ) )
-    
+
     def omega(self, t):
         #if t < self.Tp or t > self.Ta:
         #    print("Trajectory is not defined for time", t, "(should be between", self.Tp, "and", self.Ta, ")")
@@ -189,7 +187,7 @@ class Omega1:
             return( self.omega1*exp(self.s*(self.T-t)) )
         else:
             return(  self.time_to_freq(t, [0, self.omega0, self.s])  )
-        
+
     def Print(self):
         return
 
@@ -204,10 +202,10 @@ class Omega_precomp():
         self.dT = self.Ta - self.Tp
         self.proportion = self.mean_traj[0]
 #        self.traj = interp1d([i for i in range(self.Ta+1)], self.mean_traj, kind='cubic', fill_value = 'extrapolate')
-    
+
     def limits(self):
         return([self.Tp, self.Ta])
-    
+
     def linear_func(self, x0, t):
         y0 = self.mean_traj[x0]
         #x1 = x0+1
@@ -215,7 +213,7 @@ class Omega_precomp():
         #k = (y1-y0)/(x1-x0)
         k = (y1-y0)
         return(k*(t-x0)+y0)
-    
+
     def omega1(self, t):
         prop = 0.006
         PAF = 0.99
@@ -225,7 +223,7 @@ class Omega_precomp():
         p = -s*t/2
         om = 1.0-1.0/(1.0+k0*exp(p))
         return(om)
-    
+
     def omega2(self, t):
         prop = 0.2
         PAF = 0.9907202025434643
@@ -237,7 +235,7 @@ class Omega_precomp():
         if t > dT:
             om = self.omega(t)
         return(om)
-    
+
     def omega(self, t):
         t = len(self.mean_traj)-t
         if t < 0:
@@ -245,11 +243,11 @@ class Omega_precomp():
         if t > self.Ta-1:
             return( self.linear_func(self.Ta-1, t) )
         return( self.linear_func(floor(t), t) )
-        
+
     def omega3(self, t):
         t = self.Ta-t
         v = self.traj(t)
         return( v )
-        
+
     def Print(self):
         return

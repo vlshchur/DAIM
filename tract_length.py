@@ -25,7 +25,11 @@ os.environ["NUMEXPR_NUM_THREADS"] = "1"
 os.environ["OMP_NUM_THREADS"] = "1"
 
 import argparse
-import matplotlib.pyplot as plt
+plt_available = True
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    plt_available = False
 from omega import Omega_logit,Omega_precomp
 from ode import ExpectedTractLength
 from math import sqrt
@@ -50,9 +54,9 @@ parser.add_argument('--pdf', action='store_true',
                     help='Output probability density function')
 
 #parser.add_argument('-at', action='store_true',
-#                    help='Output all trajectories, if not specified, only expected trajectories will be output')                    
+#                    help='Output all trajectories, if not specified, only expected trajectories will be output')
 
-                    
+
 cl = parser.parse_args()
 if isinstance(cl.Ne, list):
     cl.Ne = cl.Ne[0]
@@ -142,7 +146,7 @@ for maxT in times:
             print(t, "\t", l)
         sys.exit(1)
     omega.Print()
-    if False:
+    if False and plt_available:
     #    plt.plot(range(omega.Tp,omega.Ta), [omega.omega(t) for t in range(omega.Tp,omega.Ta)])
         plt.plot(range(0,maxT), [omega.omega(t) for t in range(0,maxT)])
 #        plt.plot(range(0,maxT), [omega.omega1(t) for t in range(0,maxT)])
@@ -167,7 +171,7 @@ try:
 except ValueError:
     print("Cannot initialise AF trajectory, allele goes to fixation.")
     sys.exit(1)
-    
+
 print("Calculating...")
 
 tr_len = ExpectedTractLength(omega, Ne)

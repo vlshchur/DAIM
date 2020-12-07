@@ -31,7 +31,11 @@ from math import (exp,log,sqrt)
 from scipy import (linalg as la,integrate)
 import time
 from numpy import (dot,identity)
-import matplotlib.pyplot as plt
+plt_available = True
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    plt_available = False
 #from omega import Omega
 
 def print_err(*args, **kwargs):
@@ -42,7 +46,7 @@ class precision:
         self.r2_c = 1.0
         self.range_c = 5.0
         self.discr = 1000
-        
+
 
 class ODE_parameters:
     def __init__(self, Ne, r1, r2=0.000001):
@@ -88,7 +92,7 @@ def ExpectedTractLength(omega, Ne, debug = False):
        pdf.append(exp(-cumul_rate*dr)*transition_rates[d])
        points.append(d*dr)
        cumul_rate += transition_rates[d]
-    if False:
+    if False and plt_available:
         x = []
         for d in range(prec.discr):
             x.append(d*dr)
