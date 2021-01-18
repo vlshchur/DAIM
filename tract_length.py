@@ -93,9 +93,9 @@ else:
     sys.exit(1)
 
 
-print("time\tlength\tsd")
+print("time\tlength\tsd\toAF")
 for v in lens:
-    print(v[0], "\t", v[1][0], "\t", v[1][1])
+    print(v[0], "\t", v[1][0], "\t", v[1][1], "\t", v[1][4])
     osm = v[1][0]/2
 #    osd = sqrt((v[1][1])**2/2)
 #    print("Observed AF = ", v[1][4])
